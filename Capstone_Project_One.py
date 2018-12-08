@@ -17,6 +17,8 @@ data = pd.read_csv('/Users/asifbala/Downloads/WorldCupMatches.csv',index_col='Ye
 data_nona = data.dropna()
 df = data_nona.loc[2002.0:2014.0]
 
+pd.options.mode.chained_assignment = None
+
 #Find overall winning percentage of each team
 
 df['Tie'] = np.where(df['Home Team Goals'] == df['Away Team Goals'],1, 0)
@@ -191,7 +193,11 @@ winningpercentage_byyear.columns = ['2002','2006','2010','2014']
 
 winningpercentage_byyear = winningpercentage_byyear.T
 
+print(winningpercentage_byyear)
+
 #line plot showcasing winning percentage by year for teams
+winningpercentage_byyear_plot = winningpercentage_byyear.plot(subplots=True,figsize=(20,20))
+
 winningpercentage_byyear_plot = winningpercentage_byyear.plot()
 
 winningpercentage_byyear_plot.legend(loc='center left', bbox_to_anchor=(1, 0.5))
