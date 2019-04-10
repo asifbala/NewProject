@@ -1,2 +1,1 @@
-# NewProject
-SpringBoard-Data Science
+# SpringBoard-Data Science
