@@ -194,6 +194,14 @@ x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=
 
 xgb = XGBClassifier(max_depth=3,n_estimators=250,learning_rate=0.1)
 
+cv_scores_xgb = cross_val_score(xgb,x,y,cv=5)
+
+print(cv_scores_xgb)
+
+mean_cv_scores_xgb = np.mean(cv_scores_xgb)
+
+print(mean_cv_scores_xgb)
+
 xgb = xgb.fit(x_train,y_train)
 
 y_pred_xgb = xgb.predict(x_test)
@@ -204,14 +212,12 @@ cr_xgb = classification_report(y_test,y_pred_xgb)
 
 print(cr_xgb)
 
-cv_scores_xgb = cross_val_score(xgb,x,y,cv=5)
-
-mean_cv_scores_xgb = np.mean(cv_scores_xgb)
-
-print(mean_cv_scores_xgb)
-
 y_pred_proba_xgb = xgb.predict_proba(x_test)
 
+print(type(y_pred_proba_xgb))
+
 y_pred_proba_xgb_df = pd.DataFrame(y_pred_proba_xgb)
+
+print(y_pred_proba_xgb_df)
 
 #73% accuracy on Test Set
