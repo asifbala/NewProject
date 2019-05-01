@@ -1,20 +1,14 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.linear_model import SGDClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import GradientBoostingClassifier 
-from sklearn.ensemble import VotingClassifier
-from sklearn.pipeline import make_pipeline
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import cross_val_score
-from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import LabelEncoder
+import datetime
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 from xgboost import XGBClassifier
-from scipy.stats import pearsonr
-from sklearn.linear_model import LogisticRegression
 
 df_timestamp = pd.read_csv('/Users/asifbala/Springboard-Data-Science/data_science_take_home_challenge_relax_inc/takehome_user_engagement.csv',encoding='latin-1')
 df_users = pd.read_csv('/Users/asifbala/Springboard-Data-Science/data_science_take_home_challenge_relax_inc/takehome_users.csv', encoding='latin-1')
@@ -83,66 +77,81 @@ plt.show()
 
 print(under_sample.head())
 
-creation_source_adopted = pd.crosstab(under_sample['creation_source'],under_sample['adopted'])
-
-print(creation_source_adopted)
-
-creation_source_adopted.plot(kind='bar')
-
-plt.show()
-
-org_id_adopted = pd.crosstab(under_sample['org_id'],under_sample['adopted'])
-
-print(type(org_id_adopted))
-
-print(org_id_adopted.head(30))
-
-#There isnt any significant difference between adopted and not adopted for the many organizations.
-
-opted_mailing_list_adopted = pd.crosstab(under_sample['opted_in_to_mailing_list'],under_sample['adopted'])
-
-print(opted_mailing_list_adopted)
-
-opted_mailing_list_adopted.plot(kind='bar')
-
-plt.show()
-
-enabled_marketing_drip_adopted = pd.crosstab(under_sample['enabled_for_marketing_drip'],under_sample['adopted'])
-
-print(enabled_marketing_drip_adopted)
-
-enabled_marketing_drip_adopted.plot(kind='bar')
-
-plt.show()
-
-invited_by_user_id_adopted = pd.crosstab(under_sample['invited_by_user_id'],under_sample['adopted'])
-
-print(invited_by_user_id_adopted.head(10))
-
 under_sample['creation_time'] = pd.to_datetime(under_sample['creation_time'])
+under_sample['last_session_creation_time'] = under_sample['last_session_creation_time'].map(lambda data: 
+                                    datetime.datetime.utcfromtimestamp(int(data)).strftime('%Y-%m-%d %H:%M:%S'),na_action='ignore')
+    
+print(under_sample[['creation_time','last_session_creation_time']].head())
 
-under_sample2 = under_sample.set_index('creation_time')
+under_sample['last_session_creation_time'] = pd.to_datetime(under_sample['last_session_creation_time'])
+under_sample['time_active'] = under_sample['last_session_creation_time'] - under_sample['creation_time']
+under_sample['time_active'] = [x.total_seconds() for x in under_sample['time_active']]
+under_sample['time_active'] = under_sample['time_active'].fillna(0)
+print(under_sample['time_active'].head())
 
-under_sample_monthly_sum = under_sample2.resample('M').sum()
+under_sample['email_domain'] = [x.split('@')[1] for x in under_sample.email]
+top_emails = under_sample.email_domain.value_counts().index[:6]
+under_sample['email_domain'] = [x if x in top_emails else 'domain_other' for x in under_sample.email_domain]
+print(under_sample['email_domain'].head())
 
-adopted_monthly = under_sample_monthly_sum['adopted']
+under_sample['invited_by_user_id'] = under_sample['invited_by_user_id'].fillna(0)
+print(under_sample['invited_by_user_id'].head())
 
-print(adopted_monthly.head(5))
+le = LabelEncoder()
 
-under_sample_monthly_count = under_sample2.resample('M').count()
+creation_source_labels = le.fit_transform(under_sample['creation_source'])
+under_sample['creation_source'] = creation_source_labels
 
-total_monthly = under_sample_monthly_count['adopted']
+email_domain_labels = le.fit_transform(under_sample['email_domain'])
+under_sample['email_domain'] = email_domain_labels
 
-not_adopted_monthly = total_monthly - adopted_monthly
+print(under_sample.head())
 
-not_adopted_monthly.name = 'not_adopted'
+feature_df = under_sample[['creation_source','time_active','email_domain','org_id','invited_by_user_id','enabled_for_marketing_drip','opted_in_to_mailing_list','adopted']]
 
-print(not_adopted_monthly.head(5))
+print(feature_df.head())
 
-monthly_dataset = pd.concat([adopted_monthly,not_adopted_monthly],axis=1)
+x = feature_df.drop('adopted',axis=1)
 
-print(monthly_dataset)
+y = feature_df['adopted']
 
-monthly_dataset.plot()
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=21)
 
-plt.show() 
+xgb = XGBClassifier(max_depth=3,n_estimators=250,learning_rate=0.1)
+
+cv_scores_xgb = cross_val_score(xgb,x,y,cv=5)
+
+print(cv_scores_xgb)
+
+mean_cv_scores_xgb = np.mean(cv_scores_xgb)
+
+print(mean_cv_scores_xgb)
+
+xgb = xgb.fit(x_train,y_train)
+
+y_pred_xgb = xgb.predict(x_test)
+
+print(y_pred_xgb[:10])
+
+cr_xgb = classification_report(y_test,y_pred_xgb)
+
+print(cr_xgb)
+
+y_pred_proba_xgb = xgb.predict_proba(x_test)
+
+print(type(y_pred_proba_xgb))
+
+y_pred_proba_xgb_df = pd.DataFrame(y_pred_proba_xgb)
+
+print(y_pred_proba_xgb_df[:10])
+
+feature_importance = pd.DataFrame()
+feature_importance['coef'] = xgb.feature_importances_
+feature_importance = feature_importance.set_index(x.columns)
+feature_importance['coef'].nlargest(10)
+
+plt.figure(figsize=(10,5))
+(feature_importance['coef']).nlargest(10).plot(kind='bar', x=feature_importance.index)
+plt.title('XGBoost Classifier Feature Coefficients')
+plt.ylabel('coefficient value')
+plt.show()
