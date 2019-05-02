@@ -1,4 +1,3 @@
-import os
 import warnings
 import numpy as np
 import pandas as pd 
@@ -13,11 +12,23 @@ from keras.models import Sequential
 
 warnings.simplefilter("ignore", category=DeprecationWarning)
 
-os.listdir("/Users/asifbala/Desktop/humpback-whale-identification.zip Folder/train")
-
 train_labels = '/Users/asifbala/Desktop/humpback-whale-identification.zip Folder/train.csv'
 
 train_df = pd.read_csv(train_labels)
+
+print(train_df.shape)
+
+print(train_df.head())
+
+print(train_df.describe())
+
+print(train_df.info())
+
+train_df_IdCount = train_df.groupby('Id')['Image'].count()
+
+train_df_IdCount = train_df_IdCount .sort_values(ascending=False)
+
+print(train_df_IdCount.head(30))
 
 def image_prep(data, m, dataset):
     print("Preparing images")
@@ -50,6 +61,8 @@ X /= 255
 y = label_prep(train_df['Id'])
 
 y_labels = np.argmax(y,axis=1)
+
+print(y.shape)
 
 def plot_images(images, cls_true):
     assert len(images) == len(cls_true)     
