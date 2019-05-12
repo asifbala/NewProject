@@ -115,7 +115,11 @@ x = feature_df.drop('adopted',axis=1)
 
 y = feature_df['adopted']
 
-x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=21)
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.3,random_state=21,stratify=y)
+
+print(y_train.value_counts())
+
+print(y_test.value_counts())
 
 xgb = XGBClassifier(max_depth=3,n_estimators=250,learning_rate=0.1)
 
