@@ -16,7 +16,7 @@ from xgboost import XGBClassifier
 from scipy.stats import pearsonr
 from sklearn.linear_model import LogisticRegression
 
-data = pd.read_csv('/Users/asifbala/Documents/Springboard-Data Science/CapstoneProject/WorldCupMatches.csv',index_col='Year')
+data = pd.read_csv('/Users/asifbala/Documents/Springboard-Data Science/CapstoneProject/CSV Files/WorldCupMatches.csv',index_col='Year')
 data_nona = data.dropna()
 df = data_nona.loc[2002.0:2014.0]
 pd.options.mode.chained_assignment = None
@@ -329,7 +329,11 @@ y = base_df['Winning Team']
 
 print(y.head())
 
-x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=21)
+x_train,x_test,y_train,y_test = train_test_split(x,y,test_size=0.2,random_state=21,stratify=y)
+
+print(y_train.value_counts())
+
+print(y_test.value_counts())
 
 rf = RandomForestClassifier(max_depth=3,n_estimators=250)
 
