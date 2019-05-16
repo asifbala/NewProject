@@ -15,6 +15,9 @@ from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
 from scipy.stats import pearsonr
 from sklearn.linear_model import LogisticRegression
+import os
+
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 
 data = pd.read_csv('/Users/asifbala/Documents/Data Science/CapstoneProject/CSV Files/WorldCupMatches.csv',index_col='Year')
 data_nona = data.dropna()
@@ -337,6 +340,12 @@ print(y_test.value_counts())
 
 rf = RandomForestClassifier(max_depth=3,n_estimators=250)
 
+cv_scores_rf = cross_val_score(rf,x,y,cv=5)
+
+mean_cv_scores_rf = np.mean(cv_scores_rf)
+
+print(mean_cv_scores_rf)
+
 rf = rf.fit(x_train,y_train)
 
 y_pred_rf = rf.predict(x_test)
@@ -347,12 +356,6 @@ cr_rf = classification_report(y_test,y_pred_rf)
 
 print(cr_rf)
 
-cv_scores_rf = cross_val_score(rf,x,y,cv=5)
-
-mean_cv_scores_rf = np.mean(cv_scores_rf)
-
-print(mean_cv_scores_rf)
-
 y_pred_proba_rf = rf.predict_proba(x_test)
 
 y_pred_proba_rf_df = pd.DataFrame(y_pred_proba_rf)
@@ -360,6 +363,12 @@ y_pred_proba_rf_df = pd.DataFrame(y_pred_proba_rf)
 print(y_pred_proba_rf_df.head())
 
 logreg = LogisticRegression(multi_class='multinomial',solver='saga')
+
+cv_scores_logreg = cross_val_score(logreg,x,y,cv=5)
+
+mean_cv_scores_logreg = np.mean(cv_scores_logreg)
+
+print(mean_cv_scores_logreg)
 
 logreg = logreg.fit(x_train,y_train)
 
@@ -371,12 +380,6 @@ cr_logreg = classification_report(y_test,y_pred_logreg)
 
 print(cr_logreg)
 
-cv_scores_logreg = cross_val_score(logreg,x,y,cv=5)
-
-mean_cv_scores_logreg = np.mean(cv_scores_logreg)
-
-print(mean_cv_scores_logreg)
-
 y_pred_proba_logreg = logreg.predict_proba(x_test)
 
 y_pred_proba_logreg_df = pd.DataFrame(y_pred_proba_logreg)
@@ -384,6 +387,12 @@ y_pred_proba_logreg_df = pd.DataFrame(y_pred_proba_logreg)
 print(y_pred_proba_logreg_df.head())
 
 xgb = XGBClassifier(max_depth=3,n_estimators=250,learning_rate=0.1)
+
+cv_scores_xgb = cross_val_score(xgb,x,y,cv=5)
+
+mean_cv_scores_xgb = np.mean(cv_scores_xgb)
+
+print(mean_cv_scores_xgb)
 
 xgb = xgb.fit(x_train,y_train)
 
@@ -394,12 +403,6 @@ print(y_pred_xgb)
 cr_xgb = classification_report(y_test,y_pred_xgb)
 
 print(cr_xgb)
-
-cv_scores_xgb = cross_val_score(xgb,x,y,cv=5)
-
-mean_cv_scores_xgb = np.mean(cv_scores_xgb)
-
-print(mean_cv_scores_xgb)
 
 y_pred_proba_xgb = xgb.predict_proba(x_test)
 
