@@ -16,7 +16,7 @@ from xgboost import XGBClassifier
 from scipy.stats import pearsonr
 from sklearn.linear_model import LogisticRegression
 
-data = pd.read_csv('/Users/asifbala/Documents/Springboard-Data Science/CapstoneProject/CSV Files/WorldCupMatches.csv',index_col='Year')
+data = pd.read_csv('/Users/asifbala/Documents/Data Science/CapstoneProject/CSV Files/WorldCupMatches.csv',index_col='Year')
 data_nona = data.dropna()
 df = data_nona.loc[2002.0:2014.0]
 pd.options.mode.chained_assignment = None
