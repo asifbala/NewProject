@@ -174,6 +174,8 @@ total_teams = total_hometeams + total_awayteams
 
 team_tp = total_ties_sum/total_teams
 
+print(team_tp.head())
+
 team_wp = totalwins_sum/total_teams
 
 print(team_wp.head())
@@ -216,11 +218,11 @@ df = df.reset_index()
 
 def newfunction(df):
     if df['Team 0 Goals'] > df['Team 1 Goals']:          
-        return 1
+        return 0
     if df['Team 0 Goals'] == df['Team 1 Goals']:
         return 2
     else:
-        return 0
+        return 1
     
 df['Winning Team'] = df.apply(newfunction,axis=1)
 
@@ -236,11 +238,15 @@ team_tp.columns = ['Team0','Team0_Tie%_Overall']
 
 team_tp = team_tp.set_index('Team0')
 
+print(team_tp.head(30))
+
 team_tp2 = team_tp.reset_index()
 
 team_tp2.columns = ['Team1','Team1_Tie%_Overall']
 
 team_tp2 = team_tp2.set_index('Team1')
+
+print(team_tp2.head(30))
 
 team_wp = team_wp.reset_index()
 
